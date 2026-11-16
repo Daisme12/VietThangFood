@@ -1,0 +1,425 @@
+{
+  "info": {
+    "_postman_id": "8e44c220-vietthang-erp-2026-collection",
+    "name": "VietThangFood ERP - Quản Lý Xưởng Trà Sữa (23 Trang / 6 Phân Hệ)",
+    "description": "Bộ Postman Collection đầy đủ kiểm thử toàn bộ 23 trang chức năng & 6 phân hệ Backend theo đúng quy tắc trong activity.md.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Nhóm 1: Tổng quan (Trang 1)",
+      "item": [
+        {
+          "name": "Trang 1: Dashboard KPI (Xanh/Vàng/Đỏ, Doanh thu, Cảnh báo min_stock, Đơn 24h/48h)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/reports/dashboard"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Nhóm 2: Bán hàng (Trang 2 -> Trang 6)",
+      "item": [
+        {
+          "name": "Trang 2: Danh sách đơn hàng (Bộ lọc nâng cao)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/orders?includeHidden=false"
+          }
+        },
+        {
+          "name": "Trang 2: Tạo đơn hàng mới (Sinh mã tự động DH-YYYYMMDD-XXX)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": 1,\n  \"locationId\": 101,\n  \"orderDate\": \"2026-11-10\",\n  \"deliveryAt\": \"2026-11-11T09:00:00.000Z\",\n  \"note\": \"Đơn đặt buổi sáng giao cho GongCha Nguyễn Huệ\",\n  \"items\": [\n    {\n      \"productId\": 10,\n      \"qtyOrdered\": \"35.000\",\n      \"note\": \"Đóng thùng xốp đá khô\"\n    },\n    {\n      \"productId\": 11,\n      \"qtyOrdered\": \"15.000\"\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/orders"
+          }
+        },
+        {
+          "name": "Trang 2: Cập nhật đơn hàng (Test sửa đơn #500 đã giao -> Bị chặn lỗi 400)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Thử sửa đơn hàng đã giao\"\n}"
+            },
+            "url": "{{baseUrl}}/orders/500"
+          }
+        },
+        {
+          "name": "Trang 2: Hủy đơn hàng (Bắt buộc có cancelReason)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cancelReason\": \"Khách báo hoãn lịch nhận hàng do sửa chữa quầy pha chế\"\n}"
+            },
+            "url": "{{baseUrl}}/orders/501/cancel"
+          }
+        },
+        {
+          "name": "Trang 3: Danh sách đơn chờ duyệt (Xanh - Vàng - Đỏ)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/orders/pending-approval"
+          }
+        },
+        {
+          "name": "Trang 3: Duyệt đơn lẻ #501 (Đủ thành phẩm -> XANH)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/orders/501/approve"
+          }
+        },
+        {
+          "name": "Trang 3: Duyệt đơn lẻ #502 (Thiếu TP nhưng đủ BOM -> VÀNG)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/orders/502/approve"
+          }
+        },
+        {
+          "name": "Trang 3: Duyệt đơn lẻ #503 (Thiếu Đường Đen BOM -> ĐỎ / Blocked)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/orders/503/approve"
+          }
+        },
+        {
+          "name": "Trang 3: Duyệt hàng loạt đơn Xanh & Vàng (Ưu tiên đơn 24h/48h trước)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{baseUrl}}/orders/approve-bulk-green-yellow"
+          }
+        },
+        {
+          "name": "Trang 4: Đơn hôm nay (Đi đơn) gom theo Khách hàng & Địa điểm + Mẫu In Phiếu",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/orders/today-delivery?date=2026-11-10"
+          }
+        },
+        {
+          "name": "Trang 5: Phiếu xuất kho (Giao hàng) & Tự động sinh Đơn Giao Bù (Quy tắc 3.2)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"compensationDeliveryAt\": \"2026-11-11T14:00:00.000Z\",\n  \"items\": [\n    {\n      \"orderItemId\": 1002,\n      \"qtyDelivered\": \"32.000\",\n      \"shortAction\": \"compensate\"\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/orders/501/deliver"
+          }
+        },
+        {
+          "name": "Trang 6: Danh sách đơn đã hủy",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/orders/cancelled"
+          }
+        },
+        {
+          "name": "Trang 6: Khôi phục đơn đã hủy #504 về trạng thái Nháp (draft)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/orders/504/restore-draft"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Nhóm 3: Sản xuất của Bếp (Trang 7 -> Trang 10)",
+      "item": [
+        {
+          "name": "Trang 7: Tổng sản xuất ngày (Công thức Mục 3.3 + Nguyên liệu cần chuẩn bị)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/production/daily-plan?date=2026-11-10"
+          }
+        },
+        {
+          "name": "Trang 8: Ghi nhận sản xuất thực tế (Cộng TP, trừ BOM, cảnh báo nếu âm kho)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 10,\n  \"actualQty\": 50,\n  \"productionDate\": \"2026-11-10\",\n  \"note\": \"Mẻ nấu Trân Châu Hoàng Kim ca sáng\"\n}"
+            },
+            "url": "{{baseUrl}}/production/record"
+          }
+        },
+        {
+          "name": "Trang 9: Định mức nguyên liệu (BOM) & Số SP tối đa làm được theo tồn hiện tại",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/recipes"
+          }
+        },
+        {
+          "name": "Trang 9: Cập nhật công thức BOM cho Thành phẩm #10",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ingredients\": [\n    { \"materialId\": 1, \"qty\": 0.65 },\n    { \"materialId\": 2, \"qty\": 0.25 }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/recipes/products/10"
+          }
+        },
+        {
+          "name": "Trang 10: Cài đặt Định mức an toàn (safety_stock) cho các thành phẩm",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    { \"productId\": 10, \"safetyStock\": 35 },\n    { \"productId\": 11, \"safetyStock\": 20 },\n    { \"productId\": 12, \"safetyStock\": 15 }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/products/safety-stock"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Nhóm 4: Kho (Trang 11 -> Trang 14)",
+      "item": [
+        {
+          "name": "Trang 11: Danh sách phiếu nhập kho nguyên vật liệu",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/inventory/purchases"
+          }
+        },
+        {
+          "name": "Trang 11: Tạo phiếu nhập kho mới (Cộng tồn NL -> Giải cứu đơn ĐỎ #503)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"supplierId\": 3,\n  \"receiptDate\": \"2026-11-10\",\n  \"note\": \"Nhập bổ sung Đường Đen Hàn Quốc để duyệt đơn #503\",\n  \"items\": [\n    {\n      \"materialId\": 2,\n      \"qty\": \"100.000\",\n      \"unitPrice\": \"48000.00\",\n      \"note\": \"Bao 25kg x 4 bao\"\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/inventory/purchases"
+          }
+        },
+        {
+          "name": "Trang 12: Lấy bảng đối chiếu Kiểm kê cuối ngày",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/inventory/stocktake-sheet?date=2026-11-10"
+          }
+        },
+        {
+          "name": "Trang 12: Chốt Kiểm kê cuối ngày (Ghi bút toán adjustment)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stocktakeDate\": \"2026-11-10\",\n  \"note\": \"Kiểm kê kho định kỳ cuối ca tối\",\n  \"items\": [\n    {\n      \"targetType\": \"material\",\n      \"targetId\": 1,\n      \"actualStock\": \"198.500\",\n      \"reason\": \"Hao hụt tự nhiên khi chia bao lẻ\"\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/inventory/stocktake"
+          }
+        },
+        {
+          "name": "Trang 13: Ghi nhận Hủy & Hao hụt (Trừ tồn kho tức thì)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetType\": \"product\",\n  \"targetId\": 10,\n  \"qty\": \"2.000\",\n  \"wasteDate\": \"2026-11-10\",\n  \"reason\": \"Rách túi hút chân không trong quá trình vận chuyển nội bộ\"\n}"
+            },
+            "url": "{{baseUrl}}/inventory/waste-loss"
+          }
+        },
+        {
+          "name": "Trang 14: Báo cáo tồn kho (Tab Nguyên vật liệu / Thành phẩm)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/inventory/report?fromDate=2026-11-01&toDate=2026-11-10&tab=materials"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Nhóm 5: Báo cáo Doanh thu & Công nợ (Trang 15 -> Trang 16)",
+      "item": [
+        {
+          "name": "Trang 15: Báo cáo Doanh thu (Chỉ tính trên phiếu xuất thực tế)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/reports/revenue?fromDate=2026-11-01&toDate=2026-11-10&dimension=customer"
+          }
+        },
+        {
+          "name": "Trang 16: Báo cáo Đối soát Công nợ theo Địa điểm / Khách hàng",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/reports/debts?fromDate=2026-11-01&toDate=2026-11-10&groupBy=location"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Nhóm 6: Danh mục & Cấu hình (Trang 17 -> Trang 23)",
+      "item": [
+        {
+          "name": "Trang 17: Danh sách Khách hàng & Địa điểm (1 - N, hỗ trợ Soft Delete)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/customers?includeHidden=false"
+          }
+        },
+        {
+          "name": "Trang 17: Tạo Khách hàng mới kèm danh sách Địa điểm giao hàng",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"KH-THEALLEY\",\n  \"name\": \"Hệ Thống Trà Sữa The Alley Vietnam\",\n  \"taxCode\": \"0315667788\",\n  \"phone\": \"02839998888\",\n  \"locations\": [\n    {\n      \"name\": \"The Alley Nguyễn Trãi Q1\",\n      \"address\": \"112 Nguyễn Trãi, Quận 1, TP.HCM\",\n      \"receiverName\": \"Chị Thảo\",\n      \"receiverPhone\": \"0908123456\"\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/customers"
+          }
+        },
+        {
+          "name": "Trang 18: Danh sách Sản phẩm & Danh mục",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/products?includeHidden=false"
+          }
+        },
+        {
+          "name": "Trang 19: Danh sách Nguyên vật liệu (min_stock & NCC mặc định)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/materials?includeHidden=false"
+          }
+        },
+        {
+          "name": "Trang 20: Danh sách Nhà cung cấp & Lịch sử cung ứng",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/suppliers?includeHidden=false"
+          }
+        },
+        {
+          "name": "Trang 21: Xem Cấu hình hệ thống (Ngưỡng 24h/48h, Prefix, Thông tin Hóa đơn)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/settings"
+          }
+        },
+        {
+          "name": "Trang 21: Cập nhật Cấu hình hệ thống",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"settings\": [\n    { \"settingKey\": \"urgent_hours_threshold\", \"settingValue\": \"24\" },\n    { \"settingKey\": \"order_prefix\", \"settingValue\": \"DH\" },\n    { \"settingKey\": \"invoice_prefix\", \"settingValue\": \"PXK\" }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/settings"
+          }
+        },
+        {
+          "name": "Trang 22: Danh sách Người dùng & Phân quyền (Admin, Quản lý, Bếp/Kho, Nhân viên)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/users?includeHidden=false"
+          }
+        },
+        {
+          "name": "Trang 23: Đăng nhập nhận JWT Token (admin / 123456)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        }
+      ]
+    }
+  ]
+}
+

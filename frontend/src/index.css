@@ -1,0 +1,139 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, monospace;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: #f8fafc;
+    color: #0f172a;
+  }
+}
+
+/* ==========================================================================
+   ẨN TRIỆT ĐỂ WATERMARK BẢN QUYỀN CỦA MUI PRO
+   ========================================================================== */
+div[style*="letter-spacing: 5px"],
+div[style*="letterSpacing: 5"],
+div[style*="z-index: 100000"],
+div[style*="zIndex: 100000"],
+.MuiPickersLayout-root > div[style*="pointer-events: none"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* ==========================================================================
+   TÙY CHỈNH Ô HIỂN THỊ (INPUT TRIGGER)
+   Bo cong tròn đồng bộ 14px, viền xám tinh tế, chữ đậm sắc nét, chiếm 100% chiều rộng
+   ========================================================================== */
+.custom-date-range-input {
+  width: 100% !important;
+  display: block !important;
+}
+
+.custom-date-range-input .MuiPickersOutlinedInput-root,
+.custom-date-range-input .MuiOutlinedInput-root,
+.custom-date-range-input .MuiInputBase-root {
+  width: 100% !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  border-radius: 14px !important;
+  background-color: #ffffff !important;
+  height: 46px !important;
+  padding: 4px 14px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.custom-date-range-input .MuiPickersSectionList-root {
+  flex: 1 1 auto !important;
+}
+
+.custom-date-range-input .MuiPickersOutlinedInput-notchedOutline,
+.custom-date-range-input .MuiOutlinedInput-notchedOutline {
+  border-radius: 14px !important;
+  border-color: #cbd5e1 !important;
+  border-width: 1.5px !important;
+  transition: all 0.2s ease !important;
+}
+
+.custom-date-range-input:hover .MuiPickersOutlinedInput-notchedOutline,
+.custom-date-range-input:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #3553ab !important;
+}
+
+.custom-date-range-input .Mui-focused .MuiPickersOutlinedInput-notchedOutline,
+.custom-date-range-input .Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #3553ab !important;
+  border-width: 1.5px !important;
+  box-shadow: 0 0 0 3px rgba(53, 83, 171, 0.12) !important;
+}
+
+.custom-date-range-input .MuiPickersSectionList-root,
+.custom-date-range-input input {
+  font-size: 15px !important;
+  font-weight: 400 !important;
+  color: #0f172a !important;
+  letter-spacing: -0.01em !important;
+  cursor: pointer !important;
+}
+
+/* ==========================================================================
+   CSS CƠ BẢN CHO MUI DATE RANGE PICKER (CHUẨN THEO ẢNH MẪU)
+   ========================================================================== */
+/* Header: Nút bấm chọn Tháng Năm nền trong suốt */
+.MuiPickersCalendarHeader-labelContainer {
+  background-color: transparent !important;
+  padding: 0 !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  text-transform: uppercase !important;
+  color: #0f172a !important;
+}
+
+/* Hàng tiêu đề thứ trong tuần: T2 T3 T4 T5 T6 T7 CN */
+.MuiDayCalendar-header {
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 2px;
+  margin-bottom: 4px;
+}
+
+.MuiDayCalendar-weekDayLabel {
+  color: #64748b !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+/* Nút bắt đầu và kết thúc hình tròn đầy đặn màu xanh cobalt (#3553ab) */
+.MuiPickersDay-root.Mui-selected {
+  background-color: #03227d !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  border-radius: 50% !important;
+}
+
+/* Dải ngày ở giữa nối liền màu xanh nhạt */
+.MuiDateRangePickerDay-rangeIntervalDayHighlight {
+  background-color: #dbe4f9 !important;
+}
+
+.MuiDateRangePickerDay-dayInsideRangeInterval {
+  color: #0f172a !important;
+  font-weight: 500 !important;
+}
+
+

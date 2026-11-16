@@ -1,0 +1,303 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int             @id @default(autoincrement())
+  username       String          @unique @db.VarChar(50)
+  passwordHash   String          @map("password_hash") @db.VarChar(255)
+  fullName       String          @map("full_name") @db.VarChar(100)
+  role           UserRole        @default(staff)
+  isHidden       Boolean         @default(false) @map("is_hidden")
+  createdAt      DateTime        @default(now()) @map("created_at") @db.DateTime(0)
+  orders         Order[]
+  purchaseItems  PurchaseItem[]
+  stockMovements StockMovement[]
+
+  @@index([role, isHidden], map: "idx_users_role_hidden")
+  @@map("users")
+}
+
+model Supplier {
+  id            Int            @id @default(autoincrement())
+  code          String         @unique @db.VarChar(30)
+  name          String         @db.VarChar(150)
+  phone         String?        @db.VarChar(30)
+  address       String?        @db.VarChar(255)
+  isHidden      Boolean        @default(false) @map("is_hidden")
+  materials     Material[]
+  purchaseItems PurchaseItem[]
+
+  @@index([isHidden], map: "idx_suppliers_hidden")
+  @@map("suppliers")
+}
+
+model PurchaseItem {
+  id            BigInt   @id @default(autoincrement())
+  receiptCode   String   @map("receipt_code") @db.VarChar(30)
+  receiptDate   DateTime @map("receipt_date") @db.Date
+  supplierId    Int      @map("supplier_id")
+  materialId    Int      @map("material_id")
+  qty           Decimal  @db.Decimal(15, 3)
+  unitPrice     Decimal  @map("unit_price") @db.Decimal(15, 2)
+  lineTotal     Decimal  @map("line_total") @db.Decimal(15, 2)
+  note          String?  @db.VarChar(255)
+  createdBy     Int      @map("created_by")
+  isHidden      Boolean  @default(false) @map("is_hidden")
+  createdAt     DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  createdByUser User     @relation(fields: [createdBy], references: [id])
+  material      Material @relation(fields: [materialId], references: [id])
+  supplier      Supplier @relation(fields: [supplierId], references: [id])
+
+  @@index([receiptDate], map: "idx_purchase_items_receipt_date")
+  @@index([receiptCode], map: "idx_purchase_items_receipt_code")
+  @@index([supplierId], map: "idx_purchase_items_supplier_id")
+  @@index([materialId], map: "idx_purchase_items_material_id")
+  @@index([createdBy], map: "idx_purchase_items_created_by")
+  @@map("purchase_items")
+}
+
+model Material {
+  id             Int             @id @default(autoincrement())
+  supplierId     Int?            @map("supplier_id")
+  code           String          @unique @db.VarChar(30)
+  name           String          @db.VarChar(150)
+  unit           String          @db.VarChar(30)
+  minStock       Decimal         @default(0.000) @map("min_stock") @db.Decimal(15, 3)
+  isHidden       Boolean         @default(false) @map("is_hidden")
+  supplier       Supplier?       @relation(fields: [supplierId], references: [id])
+  purchaseItems  PurchaseItem[]
+  recipeItems    RecipeItem[]
+  stockMovements StockMovement[]
+
+  @@index([supplierId], map: "idx_materials_supplier_id")
+  @@index([isHidden], map: "idx_materials_hidden")
+  @@map("materials")
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(100)
+  sortOrder Int       @default(0) @map("sort_order")
+  isHidden  Boolean   @default(false) @map("is_hidden")
+  products  Product[]
+
+  @@index([sortOrder, isHidden], map: "idx_categories_sort_hidden")
+  @@map("categories")
+}
+
+model Product {
+  id             Int             @id @default(autoincrement())
+  categoryId     Int             @map("category_id")
+  code           String          @unique @db.VarChar(30)
+  name           String          @db.VarChar(150)
+  packageSpec    String?         @map("package_spec") @db.VarChar(50)
+  unit           String          @db.VarChar(30)
+  price          Decimal         @db.Decimal(15, 2)
+  vatRate        Decimal         @default(10.00) @map("vat_rate") @db.Decimal(5, 2)
+  safetyStock    Decimal         @default(0.000) @map("safety_stock") @db.Decimal(15, 3)
+  isHidden       Boolean         @default(false) @map("is_hidden")
+  createdAt      DateTime        @default(now()) @map("created_at") @db.DateTime(0)
+  orderItems     OrderItem[]
+  category       Category        @relation(fields: [categoryId], references: [id])
+  recipeItems    RecipeItem[]
+  stockMovements StockMovement[]
+
+  @@index([categoryId], map: "idx_products_category_id")
+  @@index([isHidden], map: "idx_products_hidden")
+  @@map("products")
+}
+
+model RecipeItem {
+  id         Int      @id @default(autoincrement())
+  productId  Int      @map("product_id")
+  materialId Int      @map("material_id")
+  qty        Decimal  @db.Decimal(15, 4)
+  material   Material @relation(fields: [materialId], references: [id])
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, materialId], map: "uq_recipe_items_product_material")
+  @@index([productId], map: "idx_recipe_items_product_id")
+  @@index([materialId], map: "idx_recipe_items_material_id")
+  @@map("recipe_items")
+}
+
+model Customer {
+  id        Int                @id @default(autoincrement())
+  code      String             @unique @db.VarChar(30)
+  name      String             @db.VarChar(150)
+  taxCode   String?            @map("tax_code") @db.VarChar(30)
+  phone     String?            @db.VarChar(30)
+  note      String?            @db.Text
+  isHidden  Boolean            @default(false) @map("is_hidden")
+  createdAt DateTime           @default(now()) @map("created_at") @db.DateTime(0)
+  locations CustomerLocation[]
+  orders    Order[]
+
+  @@index([isHidden], map: "idx_customers_hidden")
+  @@map("customers")
+}
+
+model CustomerLocation {
+  id            Int      @id @default(autoincrement())
+  customerId    Int      @map("customer_id")
+  name          String   @db.VarChar(150)
+  address       String   @db.VarChar(255)
+  receiverName  String?  @map("receiver_name") @db.VarChar(100)
+  receiverPhone String?  @map("receiver_phone") @db.VarChar(30)
+  isHidden      Boolean  @default(false) @map("is_hidden")
+  customer      Customer @relation(fields: [customerId], references: [id])
+  orders        Order[]
+
+  @@index([customerId, isHidden], map: "idx_customer_locations_customer_hidden")
+  @@map("customer_locations")
+}
+
+model Order {
+  id                 BigInt           @id @default(autoincrement())
+  code               String           @unique @db.VarChar(30)
+  orderType          OrderType        @default(standard) @map("order_type")
+  parentOrderId      BigInt?          @map("parent_order_id")
+  customerId         Int              @map("customer_id")
+  locationId         Int              @map("location_id")
+  orderDate          DateTime         @map("order_date") @db.Date
+  deliveryAt         DateTime         @map("delivery_at") @db.DateTime(0)
+  status             OrderStatus      @default(draft)
+  checkLevel         CheckLevel?      @map("check_level")
+  note               String?          @db.Text
+  cancelReason       String?          @map("cancel_reason") @db.VarChar(500)
+  cancelledAt        DateTime?        @map("cancelled_at") @db.DateTime(0)
+  deliveryCode       String?          @map("delivery_code") @db.VarChar(30)
+  deliveredAt        DateTime?        @map("delivered_at") @db.DateTime(0)
+  totalBeforeVat     Decimal          @default(0.00) @map("total_before_vat") @db.Decimal(15, 2)
+  totalVat           Decimal          @default(0.00) @map("total_vat") @db.Decimal(15, 2)
+  totalAmount        Decimal          @default(0.00) @map("total_amount") @db.Decimal(15, 2)
+  createdBy          Int              @map("created_by")
+  isHidden           Boolean          @default(false) @map("is_hidden")
+  createdAt          DateTime         @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt          DateTime         @default(now()) @updatedAt @map("updated_at") @db.DateTime(0)
+  makeUpOrderItems   OrderItem[]      @relation("MakeUpOrderToSourceItems")
+  items              OrderItem[]      @relation("OrderToItems")
+  createdByUser      User             @relation(fields: [createdBy], references: [id])
+  customer           Customer         @relation(fields: [customerId], references: [id])
+  location           CustomerLocation @relation(fields: [locationId], references: [id])
+  parentOrder        Order?           @relation("OrderCompensationHierarchy", fields: [parentOrderId], references: [id])
+  compensationOrders Order[]          @relation("OrderCompensationHierarchy")
+
+  @@index([orderDate], map: "idx_orders_order_date")
+  @@index([deliveryAt], map: "idx_orders_delivery_at")
+  @@index([status], map: "idx_orders_status")
+  @@index([customerId], map: "idx_orders_customer_id")
+  @@index([locationId], map: "idx_orders_location_id")
+  @@index([parentOrderId], map: "idx_orders_parent_order_id")
+  @@index([status, checkLevel, deliveryAt], map: "idx_orders_status_check_delivery")
+  @@index([createdBy], map: "orders_created_by_fkey")
+  @@map("orders")
+}
+
+model OrderItem {
+  id               BigInt       @id @default(autoincrement())
+  orderId          BigInt       @map("order_id")
+  productId        Int          @map("product_id")
+  qtyOrdered       Decimal      @map("qty_ordered") @db.Decimal(15, 3)
+  unitPrice        Decimal      @map("unit_price") @db.Decimal(15, 2)
+  vatRate          Decimal      @map("vat_rate") @db.Decimal(5, 2)
+  qtyFromStock     Decimal      @default(0.000) @map("qty_from_stock") @db.Decimal(15, 3)
+  qtyToProduce     Decimal      @default(0.000) @map("qty_to_produce") @db.Decimal(15, 3)
+  qtyDelivered     Decimal      @default(0.000) @map("qty_delivered") @db.Decimal(15, 3)
+  qtyShort         Decimal      @default(0.000) @map("qty_short") @db.Decimal(15, 3)
+  shortAction      ShortAction? @map("short_action")
+  shortCloseReason String?      @map("short_close_reason") @db.VarChar(500)
+  makeUpOrderId    BigInt?      @map("make_up_order_id")
+  note             String?      @db.VarChar(255)
+  makeUpOrder      Order?       @relation("MakeUpOrderToSourceItems", fields: [makeUpOrderId], references: [id])
+  order            Order        @relation("OrderToItems", fields: [orderId], references: [id], onDelete: Cascade)
+  product          Product      @relation(fields: [productId], references: [id])
+
+  @@index([orderId], map: "idx_order_items_order_id")
+  @@index([productId], map: "idx_order_items_product_id")
+  @@index([makeUpOrderId], map: "idx_order_items_make_up_order_id")
+  @@map("order_items")
+}
+
+model StockMovement {
+  id            BigInt            @id @default(autoincrement())
+  movementDate  DateTime          @map("movement_date") @db.Date
+  movementType  StockMovementType @map("movement_type")
+  productId     Int?              @map("product_id")
+  materialId    Int?              @map("material_id")
+  qty           Decimal           @db.Decimal(15, 3)
+  refTable      String?           @map("ref_table") @db.VarChar(50)
+  refId         BigInt?           @map("ref_id")
+  note          String?           @db.VarChar(255)
+  createdBy     Int               @map("created_by")
+  createdAt     DateTime          @default(now()) @map("created_at") @db.DateTime(0)
+  createdByUser User              @relation(fields: [createdBy], references: [id])
+  material      Material?         @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  product       Product?          @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([movementDate], map: "idx_stock_movements_date")
+  @@index([movementType], map: "idx_stock_movements_type")
+  @@index([productId, movementType], map: "idx_stock_movements_product_type")
+  @@index([materialId, movementType], map: "idx_stock_movements_material_type")
+  @@index([refTable, refId], map: "idx_stock_movements_ref")
+  @@index([createdBy], map: "stock_movements_created_by_fkey")
+  @@map("stock_movements")
+}
+
+model Setting {
+  id           Int     @id @default(autoincrement())
+  settingKey   String  @unique @map("setting_key") @db.VarChar(100)
+  settingValue String  @map("setting_value") @db.VarChar(255)
+  description  String? @db.VarChar(255)
+
+  @@map("settings")
+}
+
+enum UserRole {
+  admin
+  manager
+  staff
+  kitchen
+}
+
+enum OrderType {
+  standard
+  compensation
+}
+
+enum OrderStatus {
+  draft
+  pending
+  approved
+  blocked
+  in_production
+  ready
+  delivered
+  cancelled
+}
+
+enum CheckLevel {
+  green
+  yellow
+  red
+}
+
+enum ShortAction {
+  compensate
+  close
+}
+
+enum StockMovementType {
+  import
+  production_in
+  production_out
+  export_delivery
+  waste_loss
+  adjustment
+}
